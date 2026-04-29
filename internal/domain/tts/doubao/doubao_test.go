@@ -210,9 +210,22 @@ func TestNewDoubaoTTSV3RequestEnablesMarkdownFilter(t *testing.T) {
 		t.Fatalf("unmarshal request error = %v", err)
 	}
 
-	additions, ok := payload["Additions"].(map[string]any)
+	if _, exists := payload["Additions"]; exists {
+		t.Fatalf("unexpected top-level Additions: %#v", payload["Additions"])
+	}
+
+	reqParams, ok := payload["req_params"].(map[string]any)
 	if !ok {
-		t.Fatalf("Additions missing: %#v", payload)
+		t.Fatalf("req_params missing: %#v", payload)
+	}
+	additionsRaw, ok := reqParams["additions"].(string)
+	if !ok {
+		t.Fatalf("req_params.additions missing: %#v", reqParams)
+	}
+
+	var additions map[string]any
+	if err := json.Unmarshal([]byte(additionsRaw), &additions); err != nil {
+		t.Fatalf("unmarshal req_params.additions error = %v", err)
 	}
 	if additions["disable_markdown_filter"] != true {
 		t.Fatalf("disable_markdown_filter = %#v", additions["disable_markdown_filter"])

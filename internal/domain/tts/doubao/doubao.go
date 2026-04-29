@@ -58,7 +58,6 @@ type DoubaoTTSProvider struct {
 type doubaoTTSV3Request struct {
 	User      doubaoTTSV3User      `json:"user"`
 	ReqParams doubaoTTSV3ReqParams `json:"req_params"`
-	Additions doubaoTTSV3Additions `json:"Additions"`
 }
 
 type doubaoTTSV3User struct {
@@ -77,10 +76,7 @@ type doubaoTTSV3ReqParams struct {
 	Speaker     string                 `json:"speaker"`
 	AudioParams doubaoTTSV3AudioParams `json:"audio_params"`
 	Model       string                 `json:"model,omitempty"`
-}
-
-type doubaoTTSV3Additions struct {
-	DisableMarkdownFilter bool `json:"disable_markdown_filter"`
+	Additions   string                 `json:"additions,omitempty"`
 }
 
 type doubaoTTSV3Event struct {
@@ -118,10 +114,8 @@ func newDoubaoTTSV3Request(text, speaker string, sampleRate int, requestModel st
 				Format:     defaultDoubaoAudioFmt,
 				SampleRate: sampleRate,
 			},
-			Model: requestModel,
-		},
-		Additions: doubaoTTSV3Additions{
-			DisableMarkdownFilter: true,
+			Model:     requestModel,
+			Additions: `{"disable_markdown_filter":true}`,
 		},
 	}
 }
