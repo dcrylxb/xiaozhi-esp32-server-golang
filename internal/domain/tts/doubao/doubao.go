@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"xiaozhi-esp32-server-golang/internal/domain/doubaoapi"
-	ttsrequest "xiaozhi-esp32-server-golang/internal/domain/tts/doubao/request"
 	"xiaozhi-esp32-server-golang/internal/util"
 	log "xiaozhi-esp32-server-golang/logger"
 )
@@ -56,7 +55,33 @@ type DoubaoTTSProvider struct {
 	APIURL      string
 }
 
-type doubaoTTSV3Request = ttsrequest.V3Request
+type doubaoTTSV3Request struct {
+	User      doubaoTTSV3User      `json:"user"`
+	ReqParams doubaoTTSV3ReqParams `json:"req_params"`
+	Additions doubaoTTSV3Additions `json:"Additions"`
+}
+
+type doubaoTTSV3User struct {
+	UID string `json:"uid"`
+}
+
+type doubaoTTSV3AudioParams struct {
+	Format       string `json:"format"`
+	SampleRate   int    `json:"sample_rate"`
+	SpeechRate   int    `json:"speech_rate,omitempty"`
+	LoudnessRate int    `json:"loudness_rate,omitempty"`
+}
+
+type doubaoTTSV3ReqParams struct {
+	Text        string                 `json:"text"`
+	Speaker     string                 `json:"speaker"`
+	AudioParams doubaoTTSV3AudioParams `json:"audio_params"`
+	Model       string                 `json:"model,omitempty"`
+}
+
+type doubaoTTSV3Additions struct {
+	DisableMarkdownFilter bool `json:"disable_markdown_filter"`
+}
 
 type doubaoTTSV3Event struct {
 	Code     int     `json:"code"`
@@ -84,7 +109,21 @@ func NewDoubaoTTSProvider(config map[string]interface{}) *DoubaoTTSProvider {
 }
 
 func newDoubaoTTSV3Request(text, speaker string, sampleRate int, requestModel string) doubaoTTSV3Request {
-	return ttsrequest.NewV3Request(text, speaker, defaultDoubaoAudioFmt, sampleRate, requestModel, doubaoapi.NewRequestID())
+	return doubaoTTSV3Request{
+		User: doubaoTTSV3User{UID: doubaoapi.NewRequestID()},
+		ReqParams: doubaoTTSV3ReqParams{
+			Text:    text,
+			Speaker: speaker,
+			AudioParams: doubaoTTSV3AudioParams{
+				Format:     defaultDoubaoAudioFmt,
+				SampleRate: sampleRate,
+			},
+			Model: requestModel,
+		},
+		Additions: doubaoTTSV3Additions{
+			DisableMarkdownFilter: true,
+		},
+	}
 }
 
 func (p *DoubaoTTSProvider) TextToSpeech(ctx context.Context, text string, sampleRate int, channels int, frameDuration int) ([][]byte, error) {
