@@ -196,3 +196,25 @@ func TestNewDoubaoTTSV3RequestUsesNestedReqParams(t *testing.T) {
 		t.Fatalf("audio_params.format = %#v", audioParams["format"])
 	}
 }
+
+func TestNewDoubaoTTSV3RequestEnablesMarkdownFilter(t *testing.T) {
+	req := newDoubaoTTSV3Request("run **grep** now", "voice-demo", 24000, modelSeedTTS20Standard)
+
+	raw, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("marshal request error = %v", err)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		t.Fatalf("unmarshal request error = %v", err)
+	}
+
+	additions, ok := payload["Additions"].(map[string]any)
+	if !ok {
+		t.Fatalf("Additions missing: %#v", payload)
+	}
+	if additions["disable_markdown_filter"] != true {
+		t.Fatalf("disable_markdown_filter = %#v", additions["disable_markdown_filter"])
+	}
+}
